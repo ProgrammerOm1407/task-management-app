@@ -11,16 +11,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  logger.error('Server error:', err);
-  res.status(500).json({ 
-    success: false,
-    error: 'Server Error',
-    message: err.message || 'An unexpected error occurred'
-  });
-});
-
 // Routes
 app.get('/', (req, res) => {
   res.send('Task Management API is running');
@@ -35,6 +25,16 @@ app.get('/health', (req, res) => {
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
+
+// Error handling middleware (must be after routes)
+app.use((err, req, res, next) => {
+  logger.error('Server error:', err);
+  res.status(500).json({ 
+    success: false,
+    error: 'Server Error',
+    message: err.message || 'An unexpected error occurred'
+  });
+});
 
 // Define port
 const PORT = process.env.PORT || 5000;

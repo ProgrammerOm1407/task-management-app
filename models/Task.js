@@ -11,8 +11,8 @@ const TaskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'in-progress', 'completed'],
-    default: 'pending'
+    enum: ['To Do', 'In Progress', 'Completed', 'pending', 'in-progress', 'completed'],
+    default: 'To Do'
   },
   priority: {
     type: String,

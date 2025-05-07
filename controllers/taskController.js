@@ -74,7 +74,7 @@ const createTask = async (req, res) => {
     const newTask = new Task({
       title,
       description,
-      status: status || 'pending',
+      status: status || 'To Do',
       priority: priority || 'Medium',
       dueDate: dueDate || null,
       user: req.user.id // Add the authenticated user's ID

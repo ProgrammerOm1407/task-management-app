@@ -19,12 +19,14 @@ async function registerUser() {
     console.log('Testing user registration...');
     const response = await axios.post(`${API_URL}/auth/register`, testUser);
     
-    if (response.data.token) {
+    console.log('Registration response:', response.data);
+    
+    if (response.data.success && response.data.token) {
       console.log('✅ Registration successful!');
       token = response.data.token;
       return true;
     } else {
-      console.log('❌ Registration failed: No token received');
+      console.log('❌ Registration failed: Invalid response format or no token received');
       return false;
     }
   } catch (error) {
@@ -42,12 +44,14 @@ async function loginUser() {
       password: testUser.password
     });
     
-    if (response.data.token) {
+    console.log('Login response:', response.data);
+    
+    if (response.data.success && response.data.token) {
       console.log('✅ Login successful!');
       token = response.data.token;
       return true;
     } else {
-      console.log('❌ Login failed: No token received');
+      console.log('❌ Login failed: Invalid response format or no token received');
       return false;
     }
   } catch (error) {
@@ -83,9 +87,16 @@ async function testProtectedRouteWithToken() {
     console.log('Testing protected route with token...');
     const response = await axios.post(
       `${API_URL}/tasks`, 
-      { title: 'Test Task' },
+      { 
+        title: 'Test Task',
+        description: 'This is a test task',
+        status: 'To Do',
+        priority: 'Medium'
+      },
       { headers: { 'x-auth-token': token } }
     );
+    
+    console.log('Protected route response:', response.data);
     
     if (response.data.success) {
       console.log('✅ Test passed: Successfully created task with token');
@@ -109,9 +120,11 @@ async function getUserProfile() {
       { headers: { 'x-auth-token': token } }
     );
     
-    if (response.data) {
+    console.log('User profile response:', response.data);
+    
+    if (response.data && response.data.success) {
       console.log('✅ Test passed: Successfully retrieved user profile');
-      console.log('User:', response.data);
+      console.log('User:', response.data.data);
       return true;
     } else {
       console.log('❌ Test failed: Could not retrieve user profile');

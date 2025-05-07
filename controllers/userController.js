@@ -10,7 +10,10 @@ const registerUser = async (req, res) => {
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User already exists' 
+      });
     }
 
     // Create new user
@@ -20,11 +23,7 @@ const registerUser = async (req, res) => {
       password
     });
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    // Save user to database
+    // Save user to database (password will be hashed by the pre-save hook)
     await user.save();
 
     // Create JWT payload
@@ -41,12 +40,19 @@ const registerUser = async (req, res) => {
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.status(201).json({ 
+          success: true, 
+          token,
+          message: 'User registered successfully'
+        });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error' 
+    });
   }
 };
 
@@ -58,13 +64,19 @@ const loginUser = async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid credentials' 
+      });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid credentials' 
+      });
     }
 
     // Create JWT payload
@@ -81,12 +93,19 @@ const loginUser = async (req, res) => {
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({ 
+          success: true, 
+          token,
+          message: 'Login successful'
+        });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error' 
+    });
   }
 };
 
@@ -94,10 +113,24 @@ const loginUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: user,
+      message: 'User profile retrieved successfully'
+    });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({
+      success: false,
+      message: 'Server Error'
+    });
   }
 };
 

@@ -1,0 +1,270 @@
+/* Main Styles */
+:root {
+  --primary-color: #4a6fa5;
+  --secondary-color: #166088;
+  --accent-color: #4fc3a1;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --danger-color: #dc3545;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background-color: var(--light-color);
+  color: var(--dark-color);
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-color);
+}
+
+ul {
+  list-style: none;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.navbar-brand a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbar-nav {
+  display: flex;
+}
+
+.nav-item {
+  margin-left: 1rem;
+}
+
+.nav-item a, .nav-item button {
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Task Item */
+.task-item {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.task-item h3 {
+  margin-bottom: 0.5rem;
+  color: var(--secondary-color);
+}
+
+.task-details {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+  gap: 0.5rem;
+}
+
+.status, .priority, .due-date {
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.status-to-do {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.status-in-progress {
+  background-color: var(--warning-color);
+  color: var(--dark-color);
+}
+
+.status-completed {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.priority-low {
+  background-color: #e9ecef;
+  color: var(--dark-color);
+}
+
+.priority-medium {
+  background-color: var(--warning-color);
+  color: var(--dark-color);
+}
+
+.priority-high {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.due-date {
+  background-color: #e9ecef;
+  color: var(--dark-color);
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.task-actions button {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.task-actions button:first-child {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.task-actions button:last-child {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+/* Forms */
+.task-form {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-family: inherit;
+}
+
+.form-group textarea {
+  height: 100px;
+}
+
+.btn-submit {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+/* Task Page */
+.task-page h1, .task-page h2 {
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+
+.task-list {
+  margin-top: 1rem;
+}
+
+/* Auth Pages */
+.auth-page {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.auth-page h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--secondary-color);
+}
+
+.auth-link {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .navbar-nav {
+    margin-top: 1rem;
+  }
+  
+  .task-details {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .task-actions {
+    flex-direction: column;
+    margin-top: 1rem;
+  }
+  
+  .task-actions button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}

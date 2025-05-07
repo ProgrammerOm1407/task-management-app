@@ -1,22 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const { 
-  getTasks, 
+  getTasks,
+  getTaskById, 
   createTask, 
   updateTask, 
   deleteTask 
 } = require('../controllers/taskController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Get all tasks
+/**
+ * @route   GET /api/tasks
+ * @desc    Get all tasks with optional filtering
+ * @access  Public
+ */
 router.get('/', getTasks);
 
-// Add new task
-router.post('/', createTask);
+/**
+ * @route   GET /api/tasks/:id
+ * @desc    Get a single task by ID
+ * @access  Public
+ */
+router.get('/:id', getTaskById);
 
-// Update task
-router.put('/:id', updateTask);
+/**
+ * @route   POST /api/tasks
+ * @desc    Create a new task
+ * @access  Private
+ */
+router.post('/', authMiddleware, createTask);
 
-// Delete task
-router.delete('/:id', deleteTask);
+/**
+ * @route   PUT /api/tasks/:id
+ * @desc    Update an existing task
+ * @access  Private
+ */
+router.put('/:id', authMiddleware, updateTask);
+
+/**
+ * @route   DELETE /api/tasks/:id
+ * @desc    Delete a task
+ * @access  Private
+ */
+router.delete('/:id', authMiddleware, deleteTask);
 
 module.exports = router;

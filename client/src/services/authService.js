@@ -1,8 +1,9 @@
 import axios from 'axios';
+import config from '../config';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api', // Use relative URL to work with proxy in package.json
+  baseURL: config.API_BASE_URL, // Use the Render-hosted API URL
   headers: {
     'Content-Type': 'application/json'
   }
@@ -60,15 +61,15 @@ export const login = async (userData) => {
     console.log('Attempting login with:', userData);
     console.log('API base URL:', api.defaults.baseURL);
     
-    // Try direct API call if proxy is causing issues
+    // Try direct API call if the main request fails
     let response;
     try {
-      // First try with proxy
+      // First try with the main API
       response = await api.post('/auth/login', userData);
-    } catch (proxyError) {
-      console.warn('Proxy login failed, trying direct API call:', proxyError.message);
-      // Fall back to direct API call
-      response = await axios.post('http://localhost:5000/api/auth/login', userData, {
+    } catch (apiError) {
+      console.warn('Main API login failed, trying fallback:', apiError.message);
+      // Fall back to direct API call with explicit URL
+      response = await axios.post(`${config.API_BASE_URL}/auth/login`, userData, {
         headers: { 'Content-Type': 'application/json' }
       });
     }

@@ -1,8 +1,9 @@
 import axios from 'axios';
+import config from '../config';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api', // Use relative URL to work with proxy in package.json
+  baseURL: config.API_BASE_URL, // Use the Render-hosted API URL
   headers: {
     'Content-Type': 'application/json'
   }

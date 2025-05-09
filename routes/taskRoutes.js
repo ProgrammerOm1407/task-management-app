@@ -7,7 +7,7 @@ const {
   updateTask, 
   deleteTask 
 } = require('../controllers/taskController');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/authMiddleware-new');
 
 /**
  * @route   GET /api/tasks

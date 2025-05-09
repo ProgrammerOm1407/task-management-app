@@ -1,8 +1,6 @@
 /**
  * Simple script to test the Task API endpoints
- * Run with: node test-api.js
- * 
- * NOTE: This file is deprecated. Please use test-api-new.js instead.
+ * Run with: node test-api-new.js
  */
 
 const axios = require('axios');
@@ -21,8 +19,8 @@ const newTask = {
 
 // Test user data
 const testUser = {
-  name: 'Test User',
-  email: 'test@example.com',
+  name: 'API Test User',
+  email: 'apitest@example.com',
   password: 'password123'
 };
 
@@ -34,20 +32,73 @@ let authToken;
 async function registerOrLoginUser() {
   try {
     console.log('\n--- Setting up authentication ---');
+    
+    // First check if the server is running
+    try {
+      await axios.get('http://localhost:3000/health');
+      console.log('Server is running on port 3000');
+    } catch (error) {
+      console.error('Server is not running on port 3000');
+      throw new Error('Server connection failed. Make sure the server is running on port 3000.');
+    }
+    
     // Try to register first
     try {
+      console.log('Attempting to register user:', testUser.email);
       const response = await axios.post(`${API_URL}/auth/register`, testUser);
-      authToken = response.data.token;
-      console.log('User registered successfully');
+      
+      if (response.data && response.data.success && response.data.token) {
+        console.log('Registration response:', response.data);
+        authToken = response.data.token;
+        console.log('User registered successfully');
+      } else {
+        console.error('Registration response did not contain a token:', response.data);
+        throw new Error('Invalid registration response format');
+      }
     } catch (error) {
       // If registration fails (likely because user already exists), try login
       console.log('Registration failed, trying login...');
-      const loginResponse = await axios.post(`${API_URL}/auth/login`, {
-        email: testUser.email,
-        password: testUser.password
-      });
-      authToken = loginResponse.data.token;
-      console.log('User logged in successfully');
+      
+      if (error.response && error.response.data && 
+          error.response.status === 400 && 
+          error.response.data.message.includes('already exists')) {
+        console.log('User already exists, proceeding to login');
+      } else {
+        console.error('Registration error:', error.response?.data || error.message);
+      }
+      
+      try {
+        console.log('Attempting to login with:', testUser.email);
+        const loginResponse = await axios.post(`${API_URL}/auth/login`, {
+          email: testUser.email,
+          password: testUser.password
+        });
+        
+        if (loginResponse.data && loginResponse.data.success && loginResponse.data.token) {
+          console.log('Login response:', loginResponse.data);
+          authToken = loginResponse.data.token;
+          console.log('User logged in successfully');
+        } else {
+          console.error('Login response did not contain a token:', loginResponse.data);
+          throw new Error('Invalid login response format');
+        }
+      } catch (loginError) {
+        console.error('Login failed:', loginError.response?.data || loginError.message);
+        throw new Error('Both registration and login failed');
+      }
+    }
+    
+    // Verify the token by making a test request
+    try {
+      console.log('Verifying token by accessing protected route...');
+      const verifyResponse = await axios.get(
+        `${API_URL}/auth/me`,
+        { headers: { 'x-auth-token': authToken } }
+      );
+      console.log('Token verification successful:', verifyResponse.data.success);
+    } catch (error) {
+      console.error('Token verification failed:', error.response?.data || error.message);
+      throw new Error('Token verification failed');
     }
     
     if (!authToken) {
@@ -58,7 +109,7 @@ async function registerOrLoginUser() {
     return true;
   } catch (error) {
     console.error('Authentication setup failed ❌');
-    console.error(`Error: ${error.response?.data?.message || error.message}`);
+    console.error(`Error: ${error.message}`);
     return false;
   }
 }
@@ -67,9 +118,11 @@ async function registerOrLoginUser() {
 async function testGetAllTasks() {
   try {
     console.log('\n--- Testing GET /api/tasks ---');
-    const response = await axios.get(`${API_URL}/tasks`);
+    const response = await axios.get(`${API_URL}/tasks`, {
+      headers: { 'x-auth-token': authToken }
+    });
     console.log(`Status: ${response.status}`);
-    console.log(`Total tasks: ${response.data.count}`);
+    console.log(`Total tasks: ${response.data.count || 0}`);
     console.log('Test passed ✅');
     return true;
   } catch (error) {
@@ -103,7 +156,10 @@ async function testCreateTask() {
 async function testGetTaskById() {
   try {
     console.log('\n--- Testing GET /api/tasks/:id ---');
-    const response = await axios.get(`${API_URL}/tasks/${createdTaskId}`);
+    const response = await axios.get(
+      `${API_URL}/tasks/${createdTaskId}`,
+      { headers: { 'x-auth-token': authToken } }
+    );
     console.log(`Status: ${response.status}`);
     console.log(`Task title: ${response.data.data.title}`);
     console.log('Test passed ✅');

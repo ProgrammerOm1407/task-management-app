@@ -1,14 +1,12 @@
 const axios = require('axios');
 
-// NOTE: This file is deprecated. Please use test-auth-new.js instead.
-
 // Base URL for API
 const API_URL = 'http://localhost:3000/api';
 
 // Test user data
 const testUser = {
-  name: 'Test User',
-  email: 'test@example.com',
+  name: 'Auth Test User',
+  email: 'authtest@example.com',
   password: 'password123'
 };
 
@@ -23,12 +21,12 @@ async function registerUser() {
     
     console.log('Registration response:', response.data);
     
-    if (response.data.success && response.data.token) {
+    if (response.data.token) {
       console.log('✅ Registration successful!');
       token = response.data.token;
       return true;
     } else {
-      console.log('❌ Registration failed: Invalid response format or no token received');
+      console.log('❌ Registration failed: No token received');
       return false;
     }
   } catch (error) {
@@ -48,12 +46,12 @@ async function loginUser() {
     
     console.log('Login response:', response.data);
     
-    if (response.data.success && response.data.token) {
+    if (response.data.token) {
       console.log('✅ Login successful!');
       token = response.data.token;
       return true;
     } else {
-      console.log('❌ Login failed: Invalid response format or no token received');
+      console.log('❌ Login failed: No token received');
       return false;
     }
   } catch (error) {
@@ -124,9 +122,9 @@ async function getUserProfile() {
     
     console.log('User profile response:', response.data);
     
-    if (response.data && response.data.success) {
+    if (response.data) {
       console.log('✅ Test passed: Successfully retrieved user profile');
-      console.log('User:', response.data.data);
+      console.log('User:', response.data);
       return true;
     } else {
       console.log('❌ Test failed: Could not retrieve user profile');

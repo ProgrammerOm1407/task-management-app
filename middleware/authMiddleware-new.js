@@ -1,24 +1,11 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 
-// For debugging
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
+/**
+ * Authentication middleware
+ * Verifies JWT token and adds user data to request
+ */
 module.exports = function(req, res, next) {
-  // Log the request details for debugging
-  if (NODE_ENV === 'development') {
-    logger.debug('Auth middleware: Processing request', {
-      url: req.originalUrl,
-      method: req.method,
-      headers: {
-        'x-auth-token': req.header('x-auth-token') ? 'Present' : 'Not present',
-        'authorization': req.headers.authorization ? 'Present' : 'Not present'
-      },
-      hasQueryParams: Object.keys(req.query || {}).length > 0,
-      hasBody: Object.keys(req.body || {}).length > 0
-    });
-  }
-
   // Get token from various places
   // 1. From x-auth-token header (primary)
   // 2. From Authorization header (Bearer token)
@@ -53,14 +40,14 @@ module.exports = function(req, res, next) {
     tokenSource = 'request body';
   }
 
-  // Check for cookie if token not found (additional method)
+  // Check for cookie if token not found
   if (!token && req.cookies && req.cookies.token) {
     token = req.cookies.token;
     tokenSource = 'cookie';
   }
 
   // Log token source if found
-  if (token) {
+  if (token && token !== 'null' && token !== 'undefined' && token !== '') {
     logger.info(`Auth middleware: Token found in ${tokenSource}`);
   }
 
@@ -68,8 +55,7 @@ module.exports = function(req, res, next) {
   if (!token || token === 'null' || token === 'undefined' || token === '') {
     logger.warn('Auth middleware: No token provided in request', {
       url: req.originalUrl,
-      method: req.method,
-      token: token || 'not provided'
+      method: req.method
     });
     
     return res.status(401).json({ 
@@ -87,7 +73,8 @@ module.exports = function(req, res, next) {
       logger.error('JWT_SECRET is not defined in environment variables');
       return res.status(500).json({ 
         success: false,
-        message: 'Server configuration error' 
+        message: 'Server configuration error',
+        error: 'server_config_error'
       });
     }
 
@@ -99,7 +86,8 @@ module.exports = function(req, res, next) {
       logger.error('Auth middleware: Invalid token structure');
       return res.status(401).json({ 
         success: false,
-        message: 'Invalid token structure' 
+        message: 'Invalid token structure',
+        error: 'invalid_token_structure'
       });
     }
     
@@ -145,13 +133,6 @@ module.exports = function(req, res, next) {
           logger.error(`Auth middleware: JWT error - ${err.message}`);
           break;
       }
-      
-      // Log the full error for debugging
-      logger.debug('JWT Error Details', { 
-        name: err.name, 
-        message: err.message, 
-        errorCode: errorCode
-      });
       
       return res.status(401).json({ 
         success: false,

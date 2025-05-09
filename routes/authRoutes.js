@@ -5,7 +5,7 @@ const {
   loginUser, 
   getUserProfile 
 } = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/authMiddleware-new');
 
 /**
  * @route   POST /api/auth/register

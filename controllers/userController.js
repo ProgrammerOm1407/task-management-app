@@ -34,19 +34,17 @@ const registerUser = async (req, res) => {
     };
 
     // Sign token
-    jwt.sign(
+    const token = jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.status(201).json({ 
-          success: true, 
-          token,
-          message: 'User registered successfully'
-        });
-      }
+      { expiresIn: '1h' }
     );
+    
+    res.status(201).json({ 
+      success: true, 
+      token,
+      message: 'User registered successfully'
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ 
@@ -87,19 +85,17 @@ const loginUser = async (req, res) => {
     };
 
     // Sign token
-    jwt.sign(
+    const token = jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ 
-          success: true, 
-          token,
-          message: 'Login successful'
-        });
-      }
+      { expiresIn: '1h' }
     );
+    
+    res.json({ 
+      success: true, 
+      token,
+      message: 'Login successful'
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ 

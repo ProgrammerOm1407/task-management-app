@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const TaskFormModal = ({ show, onClose, onSave, task }) => {
+const TaskFormModal = ({ show, onClose, onSave, task, isSubmitting }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -8,6 +8,7 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
     priority: 'Medium',
     dueDate: ''
   });
+  const [formErrors, setFormErrors] = useState({});
 
   // Update form data when task prop changes
   useEffect(() => {
@@ -29,18 +30,47 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
         dueDate: ''
       });
     }
+    // Clear any form errors when the modal is opened/closed
+    setFormErrors({});
   }, [task, show]);
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required';
+    } else if (formData.title.length > 100) {
+      errors.title = 'Title must be less than 100 characters';
+    }
+
+    if (formData.description && formData.description.length > 500) {
+      errors.description = 'Description must be less than 500 characters';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Clear error for this field when user types
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: null
+      });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    if (validateForm()) {
+      onSave(formData);
+    }
   };
 
   if (!show) {
@@ -60,34 +90,45 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
                 type="button" 
                 className="btn-close" 
                 onClick={onClose}
+                disabled={isSubmitting}
                 aria-label="Close"
               ></button>
             </div>
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="title" className="form-label">Title</label>
+                  <label htmlFor="title" className="form-label">Title <span className="text-danger">*</span></label>
                   <input
                     type="text"
-                    className="form-control"
+                    className={`form-control ${formErrors.title ? 'is-invalid' : ''}`}
                     id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
+                    placeholder="Enter task title"
+                    disabled={isSubmitting}
                     required
                   />
+                  {formErrors.title && (
+                    <div className="invalid-feedback">{formErrors.title}</div>
+                  )}
                 </div>
                 
                 <div className="mb-3">
                   <label htmlFor="description" className="form-label">Description</label>
                   <textarea
-                    className="form-control"
+                    className={`form-control ${formErrors.description ? 'is-invalid' : ''}`}
                     id="description"
                     name="description"
                     rows="3"
                     value={formData.description}
                     onChange={handleInputChange}
+                    placeholder="Enter task description (optional)"
+                    disabled={isSubmitting}
                   ></textarea>
+                  {formErrors.description && (
+                    <div className="invalid-feedback">{formErrors.description}</div>
+                  )}
                 </div>
                 
                 <div className="row mb-3">
@@ -99,6 +140,7 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
+                      disabled={isSubmitting}
                     >
                       <option value="To Do">To Do</option>
                       <option value="In Progress">In Progress</option>
@@ -114,6 +156,7 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
                       name="priority"
                       value={formData.priority}
                       onChange={handleInputChange}
+                      disabled={isSubmitting}
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -131,7 +174,9 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
                     name="dueDate"
                     value={formData.dueDate}
                     onChange={handleInputChange}
+                    disabled={isSubmitting}
                   />
+                  <small className="form-text text-muted">Optional: Set a deadline for this task</small>
                 </div>
                 
                 <div className="modal-footer">
@@ -139,14 +184,23 @@ const TaskFormModal = ({ show, onClose, onSave, task }) => {
                     type="button" 
                     className="btn btn-secondary" 
                     onClick={onClose}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
                     className="btn btn-primary"
+                    disabled={isSubmitting}
                   >
-                    {task ? 'Update Task' : 'Add Task'}
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        {task ? 'Updating...' : 'Saving...'}
+                      </>
+                    ) : (
+                      task ? 'Update Task' : 'Add Task'
+                    )}
                   </button>
                 </div>
               </form>

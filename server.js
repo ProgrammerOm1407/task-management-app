@@ -11,10 +11,27 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
 app.use(cookieParser());
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  
+  // Log authentication headers for debugging
+  if (req.url.includes('/auth')) {
+    logger.info('Auth headers:', {
+      authorization: req.headers.authorization ? 'Present' : 'Not present',
+      'x-auth-token': req.headers['x-auth-token'] ? 'Present' : 'Not present'
+    });
+  }
+  
+  next();
+});
 
 // Routes
 app.get('/', (req, res) => {
@@ -42,7 +59,7 @@ app.use((err, req, res, next) => {
 });
 
 // Define port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; // This should match the proxy in client/package.json
 
 // Connect to MongoDB and start server
 const startServer = async () => {

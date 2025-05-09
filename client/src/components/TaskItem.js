@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TaskItem = ({ task, onDelete, onUpdate }) => {
+const TaskItem = ({ task, onDelete, onUpdate, disabled }) => {
   // Function to get status badge class
   const getStatusBadgeClass = (status) => {
     switch(status.toLowerCase()) {
@@ -37,8 +37,16 @@ const TaskItem = ({ task, onDelete, onUpdate }) => {
     return dueDate < today && task.status.toLowerCase() !== 'completed';
   };
 
+  // Function to handle delete with confirmation
+  const handleDelete = () => {
+    // Create a custom confirmation dialog
+    if (window.confirm(`Are you sure you want to delete "${task.title}"? This action cannot be undone.`)) {
+      onDelete(task._id);
+    }
+  };
+
   return (
-    <div className="card mb-3 shadow-sm">
+    <div className={`card mb-3 shadow-sm ${task.status === 'Completed' ? 'border-success' : ''}`}>
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <h5 className="card-title text-primary mb-0">{task.title}</h5>
@@ -63,10 +71,13 @@ const TaskItem = ({ task, onDelete, onUpdate }) => {
         </div>
         
         <p className="card-text text-muted mb-3">
-          {task.description.length > 150 ? 
-            `${task.description.substring(0, 150)}...` : 
-            task.description
-          }
+          {!task.description ? (
+            <em className="text-muted">No description provided</em>
+          ) : (
+            task.description.length > 150 ? 
+              `${task.description.substring(0, 150)}...` : 
+              task.description
+          )}
         </p>
         
         {task.dueDate && (
@@ -83,17 +94,15 @@ const TaskItem = ({ task, onDelete, onUpdate }) => {
           <button 
             className="btn btn-sm btn-outline-primary me-2" 
             onClick={() => onUpdate(task)}
+            disabled={disabled}
           >
             <i className="bi bi-pencil-square me-1"></i>
             Edit
           </button>
           <button 
             className="btn btn-sm btn-outline-danger" 
-            onClick={() => {
-              if (window.confirm('Are you sure you want to delete this task?')) {
-                onDelete(task._id);
-              }
-            }}
+            onClick={handleDelete}
+            disabled={disabled}
           >
             <i className="bi bi-trash me-1"></i>
             Delete

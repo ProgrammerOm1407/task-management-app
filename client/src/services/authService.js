@@ -1,24 +1,106 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: '/api', // Use relative URL to work with proxy in package.json
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Handle API errors
+const handleApiError = (error) => {
+  console.error('API Error:', error);
+  
+  // If there's a response with data, return it
+  if (error.response && error.response.data) {
+    return error.response.data;
+  }
+  
+  // Otherwise return a generic error
+  return { 
+    success: false, 
+    message: 'An unexpected error occurred. Please try again.' 
+  };
+};
 
 // Register user
 export const register = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/users`, userData);
+    console.log('Attempting registration with:', userData);
+    console.log('API base URL:', api.defaults.baseURL);
+    
+    const response = await api.post('/users/register', userData);
+    console.log('Registration response:', response.data);
+    
+    // Store token if registration is successful
+    if (response.data && response.data.token) {
+      console.log('Storing token in localStorage');
+      localStorage.setItem('token', response.data.token);
+    }
+    
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    console.error('Registration error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data
+      } : 'No response',
+      request: error.request ? 'Request was made but no response received' : 'No request made'
+    });
+    throw handleApiError(error);
   }
 };
 
 // Login user
 export const login = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/login`, userData);
+    console.log('Attempting login with:', userData);
+    console.log('API base URL:', api.defaults.baseURL);
+    
+    // Try direct API call if proxy is causing issues
+    let response;
+    try {
+      // First try with proxy
+      response = await api.post('/auth/login', userData);
+    } catch (proxyError) {
+      console.warn('Proxy login failed, trying direct API call:', proxyError.message);
+      // Fall back to direct API call
+      response = await axios.post('http://localhost:5000/api/auth/login', userData, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    console.log('Login response status:', response.status);
+    console.log('Login response headers:', response.headers);
+    console.log('Login response data:', response.data);
+    
+    // Store token if login is successful
+    if (response.data && response.data.token) {
+      console.log('Storing token in localStorage');
+      localStorage.removeItem('token'); // Clear any existing token first
+      localStorage.setItem('token', response.data.token);
+      // Verify token was stored
+      const storedToken = localStorage.getItem('token');
+      console.log('Token stored successfully:', !!storedToken);
+    } else {
+      console.warn('No token received in login response');
+    }
+    
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    console.error('Login error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data
+      } : 'No response',
+      request: error.request ? 'Request was made but no response received' : 'No request made'
+    });
+    throw handleApiError(error);
   }
 };
 
@@ -28,21 +110,37 @@ export const getCurrentUser = async () => {
     const token = localStorage.getItem('token');
     if (!token) return null;
     
-    const response = await axios.get(`${API_URL}/auth/me`, {
+    // Add auth headers for this specific request
+    const response = await api.get('/auth/me', {
       headers: {
-        'x-auth-token': token
+        'x-auth-token': token,
+        'Authorization': `Bearer ${token}`
       }
     });
+    
+    // Check if response has the expected structure
+    if (response.data && response.data.data) {
+      return response.data.data; // Extract user data from response
+    }
+    
     return response.data;
   } catch (error) {
-    localStorage.removeItem('token');
+    console.error('Error getting current user:', error);
+    // If unauthorized, clear token
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+    }
     return null;
   }
 };
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null;
+  const token = localStorage.getItem('token');
+  console.log('isAuthenticated check - token in localStorage:', token);
+  const isValid = token !== null && token !== 'undefined' && token !== '';
+  console.log('isAuthenticated result:', isValid);
+  return isValid;
 };
 
 // Logout user

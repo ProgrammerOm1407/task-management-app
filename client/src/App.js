@@ -12,22 +12,47 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuthentication = async () => {
-      if (checkAuth()) {
-        setIsAuthenticated(true);
-        try {
-          const userData = await getCurrentUser();
-          setUser(userData);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
+  // Function to check authentication status
+  const checkAuthentication = async () => {
+    console.log('Checking authentication status...');
+    const isAuth = checkAuth();
+    console.log('Is authenticated according to checkAuth():', isAuth);
+    
+    if (isAuth) {
+      console.log('User is authenticated, setting state...');
+      setIsAuthenticated(true);
+      try {
+        console.log('Fetching current user data...');
+        const userData = await getCurrentUser();
+        console.log('User data received:', userData);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
-      setLoading(false);
+    } else {
+      console.log('User is not authenticated');
+      setIsAuthenticated(false);
+      setUser(null);
+    }
+    setLoading(false);
+  };
+  
+  // Check authentication on component mount
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
+  
+  // Add event listener for storage changes (for multi-tab support)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token') {
+        console.log('Token changed in localStorage, updating authentication state');
+        checkAuthentication();
+      }
     };
     
-    checkAuthentication();
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
   const logout = () => {

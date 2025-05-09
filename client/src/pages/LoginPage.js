@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { login } from '../services/authService';
+import AuthDebug from '../components/AuthDebug';
 
 const LoginPage = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,14 @@ const LoginPage = ({ setIsAuthenticated }) => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showTestCredentials, setShowTestCredentials] = useState(false);
+
+  // Clear error when form data changes
+  useEffect(() => {
+    if (error) {
+      setError('');
+    }
+  }, [formData]);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,14 +32,41 @@ const LoginPage = ({ setIsAuthenticated }) => {
     setIsLoading(true);
     
     try {
+      console.log('Submitting login form:', formData);
       const response = await login(formData);
-      localStorage.setItem('token', response.token);
+      console.log('Login response received in component:', response);
+      
+      if (!response.success) {
+        console.error('Login response indicates failure:', response);
+        throw new Error(response.message || 'Login failed');
+      }
+      
+      if (!response.token) {
+        console.error('No token in response:', response);
+        throw new Error('No authentication token received');
+      }
+      
+      console.log('Login successful, token received');
+      // Token is already stored in localStorage by the login function
+      // Double-check that token is in localStorage
+      const storedToken = localStorage.getItem('token');
+      console.log('Token in localStorage after login:', !!storedToken);
+      
       setIsAuthenticated(true);
+      console.log('isAuthenticated state set to true');
     } catch (err) {
-      setError(err?.message || 'Login failed. Please try again.');
+      console.error('Login error in component:', err);
+      setError(err?.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const useTestCredentials = () => {
+    setFormData({
+      email: 'test@example.com',
+      password: 'password123'
+    });
   };
 
   return (
@@ -91,7 +127,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
                   </div>
                 </div>
                 
-                <div className="d-grid">
+                <div className="d-grid mb-3">
                   <button 
                     type="submit" 
                     className="btn btn-primary btn-lg" 
@@ -110,6 +146,30 @@ const LoginPage = ({ setIsAuthenticated }) => {
                     )}
                   </button>
                 </div>
+
+                <div className="text-center mb-3">
+                  <button 
+                    type="button" 
+                    className="btn btn-link" 
+                    onClick={() => setShowTestCredentials(!showTestCredentials)}
+                  >
+                    {showTestCredentials ? 'Hide test credentials' : 'Show test credentials'}
+                  </button>
+                </div>
+
+                {showTestCredentials && (
+                  <div className="alert alert-info" role="alert">
+                    <p className="mb-1"><strong>Test Email:</strong> test@example.com</p>
+                    <p className="mb-1"><strong>Test Password:</strong> password123</p>
+                    <button 
+                      type="button" 
+                      className="btn btn-sm btn-info mt-2" 
+                      onClick={useTestCredentials}
+                    >
+                      Use Test Credentials
+                    </button>
+                  </div>
+                )}
               </form>
             </div>
             <div className="card-footer text-center py-3 bg-light">
@@ -118,6 +178,11 @@ const LoginPage = ({ setIsAuthenticated }) => {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+      <div className="row mt-4">
+        <div className="col-md-6 offset-md-3">
+          <AuthDebug />
         </div>
       </div>
     </div>

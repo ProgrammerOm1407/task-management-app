@@ -11,6 +11,8 @@ const TaskPage = () => {
   const [currentTask, setCurrentTask] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionInProgress, setActionInProgress] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
@@ -26,6 +28,16 @@ const TaskPage = () => {
     filterTasks();
   }, [tasks, filters]);
 
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
   const fetchTasks = async () => {
     setIsLoading(true);
     setError(null);
@@ -35,7 +47,7 @@ const TaskPage = () => {
       setFilteredTasks(tasksData);
     } catch (error) {
       console.error('Error fetching tasks:', error);
-      setError('Failed to load tasks. Please try again later.');
+      setError(error.message || 'Failed to load tasks. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +71,7 @@ const TaskPage = () => {
       const searchLower = filters.searchTerm.toLowerCase();
       result = result.filter(task => 
         task.title.toLowerCase().includes(searchLower) || 
-        task.description.toLowerCase().includes(searchLower)
+        (task.description && task.description.toLowerCase().includes(searchLower))
       );
     }
     
@@ -95,11 +107,14 @@ const TaskPage = () => {
   };
 
   const handleSaveTask = async (formData) => {
+    setActionInProgress(true);
     try {
       if (currentTask) {
         await updateTask(currentTask._id, formData);
+        setSuccessMessage('Task updated successfully!');
       } else {
         await createTask(formData);
+        setSuccessMessage('New task created successfully!');
       }
       
       setShowModal(false);
@@ -107,7 +122,9 @@ const TaskPage = () => {
       fetchTasks();
     } catch (error) {
       console.error('Error saving task:', error);
-      setError('Failed to save task. Please try again.');
+      setError(error.message || 'Failed to save task. Please try again.');
+    } finally {
+      setActionInProgress(false);
     }
   };
 
@@ -117,12 +134,16 @@ const TaskPage = () => {
   };
 
   const handleDeleteClick = async (taskId) => {
+    setActionInProgress(true);
     try {
       await deleteTask(taskId);
+      setSuccessMessage('Task deleted successfully!');
       fetchTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
-      setError('Failed to delete task. Please try again.');
+      setError(error.message || 'Failed to delete task. Please try again.');
+    } finally {
+      setActionInProgress(false);
     }
   };
 
@@ -136,6 +157,11 @@ const TaskPage = () => {
     setCurrentTask(null);
   };
 
+  const handleRetry = () => {
+    setError(null);
+    fetchTasks();
+  };
+
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -146,6 +172,7 @@ const TaskPage = () => {
         <button 
           className="btn btn-primary" 
           onClick={handleAddNewClick}
+          disabled={actionInProgress}
         >
           <i className="bi bi-plus-circle me-2"></i>
           Add New Task
@@ -153,9 +180,31 @@ const TaskPage = () => {
       </div>
       
       {error && (
-        <div className="alert alert-danger" role="alert">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
-          {error}
+        <div className="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
+          <div>
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {error}
+          </div>
+          <button 
+            className="btn btn-sm btn-outline-danger" 
+            onClick={handleRetry}
+          >
+            <i className="bi bi-arrow-clockwise me-1"></i>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert">
+          <i className="bi bi-check-circle-fill me-2"></i>
+          {successMessage}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setSuccessMessage(null)}
+            aria-label="Close"
+          ></button>
         </div>
       )}
       
@@ -193,6 +242,7 @@ const TaskPage = () => {
                   <button 
                     className="btn btn-primary mt-3" 
                     onClick={handleAddNewClick}
+                    disabled={actionInProgress}
                   >
                     <i className="bi bi-plus-circle me-2"></i>
                     Add Your First Task
@@ -207,7 +257,8 @@ const TaskPage = () => {
                   <TaskItem 
                     task={task} 
                     onDelete={handleDeleteClick} 
-                    onUpdate={handleUpdateClick} 
+                    onUpdate={handleUpdateClick}
+                    disabled={actionInProgress}
                   />
                 </div>
               ))}
@@ -221,6 +272,7 @@ const TaskPage = () => {
         onClose={handleCloseModal}
         onSave={handleSaveTask}
         task={currentTask}
+        isSubmitting={actionInProgress}
       />
     </div>
   );

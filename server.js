@@ -21,14 +21,11 @@ const corsOptions = {
         'https://taskmanagementapp-seven-git-main.vercel.app',
         'https://taskmanagementapp-seven-*.vercel.app' // For preview deployments
       ]
-    : [
-        'https://taskmanagementapp-seven.vercel.app'  
-}));
-// app.use(cors({
-//   origin: 'https://taskmanagementapp-seven.vercel.app',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   credentials: true // if you're using cookies or auth headers
-// }));
+    : ['https://taskmanagementapp-seven.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // if you're using cookies or auth headers
+};
+app.use(cors(corsOptions));
 app.use(cookieParser());
 
 // Log all requests for debugging
@@ -97,10 +94,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
-const express = require('express');
-const cors = require('cors');
-
-
 
 startServer();

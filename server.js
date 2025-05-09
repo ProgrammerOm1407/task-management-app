@@ -10,12 +10,19 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-  origin: ['https://taskmanagementapp-seven.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
-  
+
+// CORS configuration
+const corsOptions = {
+  // Check if we're in production and should use a specific origin list
+  // or if we should allow all origins (useful for development/testing)
+  origin: process.env.NODE_ENV === 'production' && process.env.CORS_RESTRICTED === 'true'
+    ? [
+        'https://taskmanagementapp-seven.vercel.app',
+        'https://taskmanagementapp-seven-git-main.vercel.app',
+        'https://taskmanagementapp-seven-*.vercel.app' // For preview deployments
+      ]
+    : [
+        'https://taskmanagementapp-seven.vercel.app'  
 }));
 // app.use(cors({
 //   origin: 'https://taskmanagementapp-seven.vercel.app',

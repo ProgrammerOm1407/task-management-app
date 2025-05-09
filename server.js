@@ -11,11 +11,17 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['https://taskmanagementapp-seven.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+  
 }));
+// app.use(cors({
+//   origin: 'https://taskmanagementapp-seven.vercel.app',
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   credentials: true // if you're using cookies or auth headers
+// }));
 app.use(cookieParser());
 
 // Log all requests for debugging
@@ -84,5 +90,10 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+const express = require('express');
+const cors = require('cors');
+
+
 
 startServer();
